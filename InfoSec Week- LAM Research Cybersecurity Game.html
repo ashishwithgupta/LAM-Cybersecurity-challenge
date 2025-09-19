@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAM Research Cybersecurity Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .game-header {
+            background: linear-gradient(45deg, #0d4f3c, #188167);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #2c9f88;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .main-title {
+            font-size: 2.2em;
+            color: #2c9f88;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .sub-title {
+            font-size: 1.4em;
+            color: #40e0d0;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.9em;
+            color: #40e0d0;
+        }
+        
+        .game-timer {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(231, 76, 60, 0.9);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            border: 2px solid #c0392b;
+        }
+        
+        .game-area {
+            flex: 1;
+            display: flex;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .main-room {
+            flex: 3;
+            position: relative;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-right: 3px solid #3498db;
+            overflow: hidden;
+        }
+        
+        .room-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+            background-size: 30px 30px;
+            background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
+            opacity: 0.3;
+        }
+        
+        .room-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.8em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 3px solid #2980b9;
+        }
+        
+        .interactive-item {
+            position: absolute;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            border: 3px solid #ffffff;
+            border-radius: 15px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            min-width: 90px;
+            font-size: 0.8em;
+            line-height: 1.2;
+        }
+        
+        .interactive-item:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+            border-color: #f1c40f;
+        }
+        
+        .interactive-item.completed {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            animation: celebration 0.5s ease;
+        }
+        
+        .interactive-item.attempted {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-color: #a93226;
+        }
+        
+        .side-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 3px solid #3498db;
+        }
+        
+        .progress-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .progress-title {
+            color: #f1c40f;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .score-display {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            border: 3px solid #a93226;
+        }
+        
+        .score-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .progress-counter {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            border: 2px solid #2980b9;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            color: #2c3e50;
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 4px solid #3498db;
+        }
+        
+        .modal-title {
+            font-size: 2em;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .modal-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #34495e;
+        }
+        
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            text-align: left;
+        }
+        
+        .choice-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            border-color: #f1c40f;
+        }
+        
+        .choice-btn.correct {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            animation: correct-flash 1s ease;
+        }
+        
+        .choice-btn.incorrect {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            animation: shake 0.5s ease;
+        }
+        
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .login-form {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 3px solid #00ffff;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #f1c40f;
+        }
+        
+        .rank-1 { border-left-color: #f1c40f; background: rgba(241, 196, 15, 0.2); }
+        .rank-2 { border-left-color: #95a5a6; background: rgba(149, 165, 166, 0.2); }
+        .rank-3 { border-left-color: #cd7f32; background: rgba(205, 127, 50, 0.2); }
+        
+        .time-up-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        
+        .time-up-content {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes celebration {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes correct-flash {
+            0%, 100% { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+            50% { background: linear-gradient(45deg, #ffffff, #2ecc71); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Login Modal -->
+        <div class="login-modal" id="loginModal">
+            <div class="login-form">
+                <h2 style="color: #00ffff; margin-bottom: 20px;">🛡️ Welcome to LAM Cybersecurity Challenge</h2>
+                <p style="margin-bottom: 30px; color: #ffffff;">Enter your details to start the 10-minute challenge!</p>
+                <input type="text" id="playerName" class="input-field" placeholder="Enter your full name" required>
+                <input type="email" id="playerEmail" class="input-field" placeholder="Enter your email address" required>
+                <button class="start-btn" onclick="startGame()">🚀 START CHALLENGE</button>
+            </div>
+        </div>
+        
+        <!-- Time Up Modal -->
+        <div class="time-up-modal" id="timeUpModal">
+            <div class="time-up-content">
+                <h2>⏰ TIME'S UP!</h2>
+                <p style="margin: 20px 0;">The 10-minute challenge has ended.</p>
+                <p>Your final score has been recorded!</p>
+                <button class="start-btn" onclick="showFinalResults()" style="margin-top: 30px;">View Results & Leaderboard</button>
+            </div>
+        </div>
+        
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="user-info" id="userInfo">Player: Loading...</div>
+            <div class="main-title">CYBERSECURITY WEEK : LAM RESEARCH</div>
+            <div class="sub-title">ESCAPE ROOM : QUANTUM LOCKDOWN GAME</div>
+            <div class="game-timer" id="gameTimer">10:00</div>
+        </div>
+        
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <div class="main-room" id="gameRoom">
+                <div class="room-background"></div>
+                <div class="room-title" id="roomTitle">🏢 LAM RESEARCH OFFICE - Hunt for 15 Security Threats!</div>
+                <div class="progress-counter" id="progressCounter">Completed: 0/15 Threats</div>
+                
+                <!-- Interactive Items Grid -->
+                <div class="interactive-item" style="top: 18%; left: 8%;" onclick="clickItem('whatsapp')" id="item-whatsapp">
+                    💬<br>WhatsApp<br>CEO Request
+                </div>
+                <div class="interactive-item" style="top: 18%; left: 22%;" onclick="clickItem('file')" id="item-file">
+                    📁<br>File Transfer<br>Request
+                </div>
+                <div class="interactive-item" style="top: 18%; left: 36%;" onclick="clickItem('insider')" id="item-insider">
+                    👤<br>Suspicious<br>Colleague
+                </div>
+                <div class="interactive-item" style="top: 18%; left: 50%;" onclick="clickItem('tailgate')" id="item-tailgate">
+                    🚪<br>Tailgating<br>Attempt
+                </div>
+                <div class="interactive-item" style="top: 18%; right: 12%;" onclick="clickItem('camera')" id="item-camera">
+                    📷<br>Taking<br>Photos
+                </div>
+                <div class="interactive-item" style="top: 40%; left: 8%;" onclick="clickItem('social')" id="item-social">
+                    📱<br>Social Media<br>Office Post
+                </div>
+                <div class="interactive-item" style="top: 40%; left: 22%;" onclick="clickItem('juice')" id="item-juice">
+                    🔌<br>Juice Jacking<br>Attack
+                </div>
+                <div class="interactive-item" style="top: 40%; left: 36%;" onclick="clickItem('airport')" id="item-airport">
+                    ✈️<br>Airport<br>Charging
+                </div>
+                <div class="interactive-item" style="top: 40%; left: 50%;" onclick="clickItem('qr')" id="item-qr">
+                    📱<br>Unknown<br>QR Code
+                </div>
+                <div class="interactive-item" style="top: 40%; right: 12%;" onclick="clickItem('ceo')" id="item-ceo">
+                    👔<br>CEO Urgent<br>Email
+                </div>
+                <div class="interactive-item" style="bottom: 18%; left: 8%;" onclick="clickItem('update')" id="item-update">
+                    💻<br>Software<br>Update
+                </div>
+                <div class="interactive-item" style="bottom: 18%; left: 22%;" onclick="clickItem('phone')" id="item-phone">
+                    📱<br>Unlocked<br>Phone
+                </div>
+                <div class="interactive-item" style="bottom: 18%; left: 36%;" onclick="clickItem('chip')" id="item-chip">
+                    🔬<br>Chip Design<br>Request
+                </div>
+                <div class="interactive-item" style="bottom: 18%; left: 50%;" onclick="clickItem('popup')" id="item-popup">
+                    ⚠️<br>Security<br>Alert
+                </div>
+                <div class="interactive-item" style="bottom: 18%; right: 12%;" onclick="clickItem('wifi')" id="item-wifi">
+                    📶<br>Free WiFi<br>Network
+                </div>
+            </div>
+            
+            <!-- Side Panel -->
+            <div class="side-panel">
+                <div class="progress-section">
+                    <div class="progress-title">🏆 Your Score</div>
+                    <div class="score-display">
+                        <div>CYBER SCORE</div>
+                        <div class="score-number" id="playerScore">0</div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-title">🏆 Live Leaderboard</div>
+                    <div class="leaderboard" id="leaderboard">
+                        <div style="text-align: center; color: #bbb;">Loading leaderboard...</div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-title">💡 Game Status</div>
+                    <div id="gameStatus" style="font-size: 0.9em; line-height: 1.4; color: #ecf0f1;">
+                        Find all 15 security threats! Each correct answer on first try: +25 points. Wrong answers: 0 points.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Question Modal -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Security Challenge!</div>
+                <div class="modal-text" id="modalText">What should you do in this situation?</div>
+                <div class="choice-buttons" id="choiceButtons">
+                    <!-- Dynamic buttons will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Game state
+        let gameState = {
+            playerName: '',
+            playerEmail: '',
+            score: 0,
+            completedItems: [],
+            attemptedItems: [],
+            startTime: null,
+            timeRemaining: 600, // 10 minutes
+            gameActive: false,
+            currentItemId: null,
+            scoreSaved: false
+        };
+        
+        // Timer
+        let gameTimer;
+        
+        // Question database - 5 questions per category
+        const questionDatabase = {
+            whatsapp: [
+                {
+                    title: "💬 WhatsApp CEO Money Request!",
+                    text: "You received a WhatsApp message from 'LAM CEO' asking: 'I'm in urgent meeting with investors. Need you to transfer $75,000 to secure big deal. Send to account 12345. Keep confidential!' What do you do?",
+                    choices: [
+                        { text: "Transfer money immediately - it's the CEO!", correct: false },
+                        { text: "Call CEO's office directly to verify before acting", correct: true },
+                        { text: "Ask for more account details first", correct: false },
+                        { text: "Forward message to finance team", correct: false }
+                    ]
+                },
+                {
+                    title: "💬 WhatsApp Emergency Request!",
+                    text: "A WhatsApp message from 'LAM Finance Director' says: 'System down! Need you to buy 10 gift cards worth $500 each for urgent client payment. Send photos of codes ASAP!' What's your response?",
+                    choices: [
+                        { text: "Buy gift cards immediately for urgent client", correct: false },
+                        { text: "Call the Finance Director directly to confirm", correct: true },
+                        { text: "Ask HR if this is normal procedure", correct: false },
+                        { text: "Buy smaller denomination cards first", correct: false }
+                    ]
+                },
+                {
+                    title: "💬 WhatsApp Supplier Message!",
+                    text: "WhatsApp from 'ASML Support': 'Payment issues detected with your account. Click this link to update payment details: wa.me/+1555-ASML-PAY or equipment delivery will be delayed.' What do you do?",
+                    choices: [
+                        { text: "Click the link to avoid delivery delays", correct: false },
+                        { text: "Contact ASML through official channels to verify", correct: true },
+                        { text: "Forward to purchasing team for handling", correct: false },
+                        { text: "Reply asking for more information", correct: false }
+                    ]
+                },
+                {
+                    title: "💬 WhatsApp IT Alert!",
+                    text: "WhatsApp from 'LAM IT Admin': 'Security breach detected! Your account compromised. Download this app to secure your device: [link]. Do NOT tell anyone - investigating insider threat!' How do you respond?",
+                    choices: [
+                        { text: "Download the app to secure my device", correct: false },
+                        { text: "Contact IT helpdesk through official channels", correct: true },
+                        { text: "Keep quiet and monitor the situation", correct: false },
+                        { text: "Warn close colleagues privately", correct: false }
+                    ]
+                },
+                {
+                    title: "💬 WhatsApp Vendor Invoice!",
+                    text: "WhatsApp from 'Intel Supplier': 'Invoice overdue! Bank details changed. Please pay $85,000 to new account: [details]. Urgent to avoid contract cancellation!' What's the right action?",
+                    choices: [
+                        { text: "Pay immediately to avoid contract issues", correct: false },
+                        { text: "Verify through official vendor contact channels", correct: true },
+                        { text: "Pay half amount first as compromise", correct: false },
+                        { text: "Forward to accounts payable team", correct: false }
+                    ]
+                }
+            ],
+            
+            file: [
+                {
+                    title: "📁 Suspicious File Transfer!",
+                    text: "A colleague asks you to download and send them the 'LAM_Employee_Database.xlsx' file via email because they 'lost access to the shared drive'. What should you do?",
+                    choices: [
+                        { text: "Send the file - helping colleagues is good", correct: false },
+                        { text: "Direct them to IT for proper access restoration", correct: true },
+                        { text: "Password protect the file first, then send it", correct: false },
+                        { text: "Share just a small sample to verify they need it", correct: false }
+                    ]
+                },
+                {
+                    title: "📁 External File Request!",
+                    text: "An external partner emails: 'Need LAM's latest 3nm process documentation for our joint project. My access expired. Can you send it directly to avoid delays?' What's your response?",
+                    choices: [
+                        { text: "Send the documentation to maintain partnership", correct: false },
+                        { text: "Direct them to proper channels for access renewal", correct: true },
+                        { text: "Send only non-confidential portions", correct: false },
+                        { text: "Ask your manager first", correct: false }
+                    ]
+                },
+                {
+                    title: "📁 Cloud File Sharing!",
+                    text: "A colleague shares a Google Drive link asking you to upload 'LAM quarterly financial results' for a presentation. They claim the official system is too slow. What do you do?",
+                    choices: [
+                        { text: "Upload to help them meet their deadline", correct: false },
+                        { text: "Insist on using official LAM systems only", correct: true },
+                        { text: "Upload with password protection", correct: false },
+                        { text: "Upload a summary version instead", correct: false }
+                    ]
+                },
+                {
+                    title: "📁 USB File Transfer!",
+                    text: "A contractor asks to copy LAM engineering files to their USB drive to work offline at home. They say it's more efficient than VPN. What's the correct response?",
+                    choices: [
+                        { text: "Allow it if the files are encrypted on USB", correct: false },
+                        { text: "Refuse and explain data security policies", correct: true },
+                        { text: "Allow only non-sensitive files", correct: false },
+                        { text: "Check with their manager first", correct: false }
+                    ]
+                },
+                {
+                    title: "📁 Backup File Access!",
+                    text: "IT sends an email: 'System maintenance required. Please download and verify your personal backup files from this temporary server: backup-lam-temp.net. Confirm by replying with file count.' What do you do?",
+                    choices: [
+                        { text: "Download files from the backup server", correct: false },
+                        { text: "Contact IT directly to verify the request", correct: true },
+                        { text: "Reply with file count without downloading", correct: false },
+                        { text: "Wait for official system maintenance notice", correct: false }
+                    ]
+                }
+            ],
+            
+            insider: [
+                {
+                    title: "👤 Malicious Insider Threat!",
+                    text: "You notice a colleague frequently working late, accessing files outside their department, and asking unusual questions about security procedures. They seem stressed and secretive. What should you do?",
+                    choices: [
+                        { text: "Ignore it - not my business what colleagues do", correct: false },
+                        { text: "Confront them directly about their behavior", correct: false },
+                        { text: "Confidentially report concerns to security team", correct: true },
+                        { text: "Ask other colleagues if they've noticed anything", correct: false }
+                    ]
+                },
+                {
+                    title: "👤 Unusual Access Pattern!",
+                    text: "You observe a coworker from Marketing department regularly accessing engineering servers and downloading chip design files late at night. When asked, they say it's for 'market research.' What's your response?",
+                    choices: [
+                        { text: "Accept their explanation - market research makes sense", correct: false },
+                        { text: "Report the unusual access pattern to security", correct: true },
+                        { text: "Ask them to show you the market research", correct: false },
+                        { text: "Mention it casually to their manager", correct: false }
+                    ]
+                },
+                {
+                    title: "👤 Disgruntled Employee Behavior!",
+                    text: "A colleague recently passed over for promotion has been making negative comments about LAM, asking detailed questions about competitor intel, and storing files on personal devices. What should you do?",
+                    choices: [
+                        { text: "Offer emotional support - they're just frustrated", correct: false },
+                        { text: "Report the concerning behaviors to HR and security", correct: true },
+                        { text: "Advise them to be more careful with their comments", correct: false },
+                        { text: "Distance yourself but don't report", correct: false }
+                    ]
+                },
+                {
+                    title: "👤 Financial Pressure Indicators!",
+                    text: "A team member mentions severe financial problems, shows interest in competitor job postings, and recently asked about the value of LAM's intellectual property. How do you handle this?",
+                    choices: [
+                        { text: "Offer to lend them money to help", correct: false },
+                        { text: "Confidentially alert security about potential risk", correct: true },
+                        { text: "Suggest they speak with HR about assistance", correct: false },
+                        { text: "Keep it confidential between yourselves", correct: false }
+                    ]
+                },
+                {
+                    title: "👤 Unusual Device Usage!",
+                    text: "You see a colleague using unauthorized recording devices during meetings, photographing whiteboards with technical drawings, and asking to borrow access badges 'for convenience.' What's the appropriate action?",
+                    choices: [
+                        { text: "Suggest they get proper authorization for devices", correct: false },
+                        { text: "Immediately report to security management", correct: true },
+                        { text: "Ask them directly about their intentions", correct: false },
+                        { text: "Document the behavior but wait for more evidence", correct: false }
+                    ]
+                }
+            ],
+            
+            tailgate: [
+                {
+                    title: "🚪 Tailgating Security Breach!",
+                    text: "Someone you don't recognize follows closely behind you as you badge into a secure LAM area. They say 'Thanks for holding the door, I forgot my badge'. What do you do?",
+                    choices: [
+                        { text: "Let them in - they seem like an employee", correct: false },
+                        { text: "Politely ask them to badge in themselves", correct: true },
+                        { text: "Ask to see their employee ID first", correct: false },
+                        { text: "Hold the door but watch them closely", correct: false }
+                    ]
+                },
+                {
+                    title: "🚪 Delivery Person Access!",
+                    text: "A delivery person carrying LAM-labeled packages asks you to let them into the secure area because 'the receptionist is busy and this is urgent.' What's the correct response?",
+                    choices: [
+                        { text: "Help them since they have LAM packages", correct: false },
+                        { text: "Direct them to reception for proper escort", correct: true },
+                        { text: "Let them in but accompany them", correct: false },
+                        { text: "Verify their ID first, then let them in", correct: false }
+                    ]
+                },
+                {
+                    title: "🚪 Visitor Badge Issues!",
+                    text: "Someone with an expired visitor badge from last week approaches you at the secure entrance saying 'I'm here for the same meeting series, can you let me in?' How do you handle this?",
+                    choices: [
+                        { text: "Let them in since they were here before", correct: false },
+                        { text: "Require them to get a new visitor badge", correct: true },
+                        { text: "Escort them to their meeting personally", correct: false },
+                        { text: "Call their meeting host to confirm", correct: false }
+                    ]
+                },
+                {
+                    title: "🚪 Contractor Badge Problem!",
+                    text: "A contractor claims their badge isn't working and asks you to swipe them in, showing you their contractor ID and LAM work order. What should you do?",
+                    choices: [
+                        { text: "Swipe them in since they have proper documentation", correct: false },
+                        { text: "Direct them to security/IT to fix their badge", correct: true },
+                        { text: "Verify the work order details first", correct: false },
+                        { text: "Let them in but report the badge issue", correct: false }
+                    ]
+                },
+                {
+                    title: "🚪 Emergency Access Request!",
+                    text: "Someone in a LAM uniform says they need urgent access to fix a 'critical system failure' but their badge was 'deactivated by mistake.' They ask you to let them in quickly. What's your response?",
+                    choices: [
+                        { text: "Let them in due to the emergency situation", correct: false },
+                        { text: "Require proper authorization from security first", correct: true },
+                        { text: "Escort them while they work", correct: false },
+                        { text: "Call their supervisor to verify", correct: false }
+                    ]
+                }
+            ],
+            
+            camera: [
+                {
+                    title: "📷 Photography in Secure Areas!",
+                    text: "A new colleague starts taking photos of their workspace, including LAM equipment and screens showing chip designs. They say it's for social media to show their cool new job. What do you do?",
+                    choices: [
+                        { text: "It's fine - just workspace photos", correct: false },
+                        { text: "Stop them and explain LAM's photography policy", correct: true },
+                        { text: "Ask them to blur out the screens first", correct: false },
+                        { text: "Report them to HR for policy violation", correct: false }
+                    ]
+                },
+                {
+                    title: "📷 Video Call Background!",
+                    text: "During a video conference with external partners, you notice a colleague has LAM's confidential project roadmap visible on their whiteboard behind them. What should you do?",
+                    choices: [
+                        { text: "Ignore it - they'll notice eventually", correct: false },
+                        { text: "Privately message them to change their background", correct: true },
+                        { text: "Point it out publicly in the call", correct: false },
+                        { text: "End the call immediately", correct: false }
+                    ]
+                },
+                {
+                    title: "📷 Visitor Phone Usage!",
+                    text: "You see a visitor taking photos of LAM equipment 'for their technical blog' about semiconductor manufacturing. They claim it's educational content. How do you respond?",
+                    choices: [
+                        { text: "Allow it since it's educational", correct: false },
+                        { text: "Stop them and contact security immediately", correct: true },
+                        { text: "Ask them to avoid showing LAM logos", correct: false },
+                        { text: "Request they get permission first", correct: false }
+                    ]
+                },
+                {
+                    title: "📷 Social Media Screenshot!",
+                    text: "A colleague shows you a screenshot they plan to post on LinkedIn showing their computer screen with LAM project timelines and client names visible. What's your advice?",
+                    choices: [
+                        { text: "Suggest better lighting for the photo", correct: false },
+                        { text: "Advise against posting any confidential information", correct: true },
+                        { text: "Recommend blurring sensitive parts", correct: false },
+                        { text: "Ask them to crop the image better", correct: false }
+                    ]
+                },
+                {
+                    title: "📷 Security Camera Concerns!",
+                    text: "You notice someone trying to position their phone to record a meeting where confidential LAM financial data will be discussed. They claim it's for 'personal notes.' What do you do?",
+                    choices: [
+                        { text: "Allow it since it's just for notes", correct: false },
+                        { text: "Prohibit recording and explain confidentiality", correct: true },
+                        { text: "Ask them to only record audio", correct: false },
+                        { text: "Let them record but not share it", correct: false }
+                    ]
+                }
+            ],
+            
+            social: [
+                {
+                    title: "📱 Social Media Office Posting!",
+                    text: "You see a colleague post on Instagram: 'Working late at LAM Research! Check out our new 3nm fab equipment 🔬' with photos of the clean room and equipment serial numbers visible. What should you do?",
+                    choices: [
+                        { text: "Like and comment on their post", correct: false },
+                        { text: "Privately message them to remove the post", correct: true },
+                        { text: "Report the post to LAM security immediately", correct: false },
+                        { text: "Screenshot it as evidence of policy violation", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 LinkedIn Confidential Post!",
+                    text: "A coworker posts on LinkedIn: 'Exciting announcement! LAM Research just signed a $2B deal with [Client Name]. Proud to be leading this project!' with project details. What's your response?",
+                    choices: [
+                        { text: "Congratulate them publicly on the success", correct: false },
+                        { text: "Contact them privately to remove confidential details", correct: true },
+                        { text: "Share the post to celebrate LAM's success", correct: false },
+                        { text: "Comment asking for more details", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Twitter Technical Details!",
+                    text: "An engineer tweets: 'Solved a major EUV lithography challenge today! Here's the technical approach we used...' and includes detailed proprietary methodology. How do you handle this?",
+                    choices: [
+                        { text: "Retweet to celebrate the innovation", correct: false },
+                        { text: "Alert them about sharing proprietary information", correct: true },
+                        { text: "Like the post to show support", correct: false },
+                        { text: "Comment with additional technical details", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Facebook Check-in Risk!",
+                    text: "A colleague frequently checks in on Facebook at 'LAM Research Secure Facility' with photos of their badge and mentions specific meeting times/locations. What should you advise?",
+                    choices: [
+                        { text: "It's fine - just showing workplace pride", correct: false },
+                        { text: "Explain security risks of location sharing", correct: true },
+                        { text: "Suggest using company hashtags instead", correct: false },
+                        { text: "Ask them to tag you in future posts", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 YouTube Lab Tour!",
+                    text: "A team member wants to create a YouTube video showcasing 'a day in the life at LAM Research' including lab tours, equipment close-ups, and colleague interviews. What's your recommendation?",
+                    choices: [
+                        { text: "Support the great PR opportunity", correct: false },
+                        { text: "Advise getting proper approvals before filming", correct: true },
+                        { text: "Offer to help with the video production", correct: false },
+                        { text: "Suggest filming only common areas", correct: false }
+                    ]
+                }
+            ],
+            
+            juice: [
+                {
+                    title: "🔌 Juice Jacking Attack!",
+                    text: "At a conference, you see a public charging station with multiple USB ports labeled 'Free Phone Charging - LAM Conference Attendees'. Your phone battery is very low. What's the safest approach?",
+                    choices: [
+                        { text: "Use the charging station - it's for LAM attendees", correct: false },
+                        { text: "Use your own power adapter in a wall outlet", correct: true },
+                        { text: "Use the station but turn off phone first", correct: false },
+                        { text: "Only charge for a few minutes to minimize risk", correct: false }
+                    ]
+                },
+                {
+                    title: "🔌 Hotel Charging Station!",
+                    text: "At a business hotel, there's a USB charging hub built into the nightstand. You need to charge your LAM laptop and phone overnight. What's the best practice?",
+                    choices: [
+                        { text: "Use the convenient built-in charging hub", correct: false },
+                        { text: "Use only your own chargers in wall outlets", correct: true },
+                        { text: "Charge devices in airplane mode only", correct: false },
+                        { text: "Use the hub but monitor devices closely", correct: false }
+                    ]
+                },
+                {
+                    title: "🔌 Car Rental USB Port!",
+                    text: "Your rental car has USB ports for charging. You need to charge your phone that contains LAM contact information and emails during the drive. What should you do?",
+                    choices: [
+                        { text: "Use the car's USB ports for convenience", correct: false },
+                        { text: "Use a power-only USB adapter or car charger", correct: true },
+                        { text: "Only charge when the car is off", correct: false },
+                        { text: "Delete LAM data before charging", correct: false }
+                    ]
+                },
+                {
+                    title: "🔌 Café Charging Station!",
+                    text: "At a café near LAM offices, there's a 'Free Customer Charging' station with multiple USB cables. Your work tablet needs charging for an important client presentation. What's the safest option?",
+                    choices: [
+                        { text: "Use the customer charging station", correct: false },
+                        { text: "Find a wall outlet and use your own charger", correct: true },
+                        { text: "Charge only after backing up data", correct: false },
+                        { text: "Ask café staff if the station is secure", correct: false }
+                    ]
+                },
+                {
+                    title: "🔌 Trade Show Charging Kiosk!",
+                    text: "At a semiconductor industry trade show, there's a sponsored charging kiosk with built-in cables. Your phone with LAM proprietary apps is dying during important networking. How do you handle this?",
+                    choices: [
+                        { text: "Use the sponsored kiosk - it's industry-related", correct: false },
+                        { text: "Find a wall outlet and use your own equipment", correct: true },
+                        { text: "Remove LAM apps before charging", correct: false },
+                        { text: "Only charge for emergency calls", correct: false }
+                    ]
+                }
+            ],
+            
+            airport: [
+                {
+                    title: "✈️ Airport Charging Station Risk!",
+                    text: "Your phone is dead at the airport and you need to make an important work call. You see a charging station with multiple USB cables and power outlets. What's the best option?",
+                    choices: [
+                        { text: "Use any available USB cable for quick charging", correct: false },
+                        { text: "Find a wall outlet and use your own charger", correct: true },
+                        { text: "Borrow a cable from another traveler", correct: false },
+                        { text: "Use airplane mode while charging via USB", correct: false }
+                    ]
+                },
+                {
+                    title: "✈️ Airport WiFi Access!",
+                    text: "At the airport, you need to access LAM emails urgently. Available networks: 'Airport_Free_WiFi', 'Premium_Business_WiFi ($5)', and your mobile hotspot (low battery). What's the most secure choice?",
+                    choices: [
+                        { text: "Use the free airport WiFi", correct: false },
+                        { text: "Use mobile hotspot despite low battery", correct: true },
+                        { text: "Pay for premium business WiFi", correct: false },
+                        { text: "Wait until you reach destination", correct: false }
+                    ]
+                },
+                {
+                    title: "✈️ Security Checkpoint Device!",
+                    text: "At airport security, you're asked to put your LAM work laptop in a separate bin. You're concerned about data security while it's out of sight. What's the best approach?",
+                    choices: [
+                        { text: "Keep the laptop with you and explain it's sensitive", correct: false },
+                        { text: "Follow procedures but watch carefully", correct: true },
+                        { text: "Remove the hard drive before security", correct: false },
+                        { text: "Encrypt data and log out of all applications", correct: false }
+                    ]
+                },
+                {
+                    title: "✈️ Lost Device at Airport!",
+                    text: "You realize you left your LAM tablet at the airport security checkpoint. It contains confidential project information. What's your immediate action?",
+                    choices: [
+                        { text: "Return to security checkpoint to retrieve it", correct: false },
+                        { text: "Immediately report to LAM IT and security teams", correct: true },
+                        { text: "Call the airport lost and found", correct: false },
+                        { text: "Wait to see if someone contacts you", correct: false }
+                    ]
+                },
+                {
+                    title: "✈️ Overhead Conversations!",
+                    text: "In a crowded airport gate area, you need to take a confidential call about LAM's quarterly projections. How should you handle this?",
+                    choices: [
+                        { text: "Take the call quietly in your seat", correct: false },
+                        { text: "Find a private area away from crowds", correct: true },
+                        { text: "Use a business lounge if available", correct: false },
+                        { text: "Ask to reschedule the call", correct: false }
+                    ]
+                }
+            ],
+            
+            qr: [
+                {
+                    title: "📱 Unknown QR Code Scanner!",
+                    text: "At a restaurant, you see a QR code on the table that says 'Scan for 50% LAM Employee Discount!' You don't remember LAM having a partnership with this restaurant. What should you do?",
+                    choices: [
+                        { text: "Scan it to get the discount - why not save money?", correct: false },
+                        { text: "Don't scan and verify with LAM HR about partnerships", correct: true },
+                        { text: "Scan it but don't click any links that appear", correct: false },
+                        { text: "Ask the restaurant staff if it's legitimate", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Conference QR Code!",
+                    text: "At a semiconductor conference, there's a QR code poster saying 'Scan to download exclusive LAM Research white paper!' The poster looks official but you don't recognize the event organizer. What do you do?",
+                    choices: [
+                        { text: "Scan it since it's LAM-related content", correct: false },
+                        { text: "Check with LAM marketing before scanning", correct: true },
+                        { text: "Scan but don't download anything", correct: false },
+                        { text: "Ask colleagues if they've seen this offer", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Parking Garage QR Payment!",
+                    text: "At LAM's parking garage, you see a new QR code for 'contactless payment' that wasn't there yesterday. It asks for payment card details and employee ID. How do you respond?",
+                    choices: [
+                        { text: "Use it for convenience - it's in LAM property", correct: false },
+                        { text: "Verify with facilities management first", correct: true },
+                        { text: "Use it but with a temporary card", correct: false },
+                        { text: "Pay cash instead", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Vendor Survey QR Code!",
+                    text: "You receive an email from 'ASML Customer Service' with a QR code for a 'quick satisfaction survey' promising entry into a prize draw for scanning. The email looks official. What's your action?",
+                    choices: [
+                        { text: "Scan the QR code to participate", correct: false },
+                        { text: "Contact ASML directly to verify the survey", correct: true },
+                        { text: "Forward to colleagues to get their opinion", correct: false },
+                        { text: "Scan but not complete the survey", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Emergency Building QR Code!",
+                    text: "During a fire drill, someone puts up QR codes saying 'Scan for emergency updates and assembly instructions.' You've never seen these in previous drills. What do you do?",
+                    choices: [
+                        { text: "Scan for important safety information", correct: false },
+                        { text: "Follow standard evacuation procedures without scanning", correct: true },
+                        { text: "Ask the drill coordinator about the QR codes", correct: false },
+                        { text: "Scan after you reach the assembly point", correct: false }
+                    ]
+                }
+            ],
+            
+            ceo: [
+                {
+                    title: "👔 CEO Urgent Email!",
+                    text: "You received an email from 'CEO.Richard@lamresearch-urgent.com' saying: 'I'm stuck in a meeting with investors. Urgently wire $50,000 to this account for the deal. Don't tell anyone - confidential!' What do you do?",
+                    choices: [
+                        { text: "Wire the money immediately - it's from the CEO!", correct: false },
+                        { text: "Call the CEO's office directly to verify", correct: true },
+                        { text: "Ask the CEO about it in the next company meeting", correct: false },
+                        { text: "Forward it to Finance to handle", correct: false }
+                    ]
+                },
+                {
+                    title: "👔 Executive Travel Emergency!",
+                    text: "Email from 'CFO.Sarah@lam-executive.net': 'Stranded at Tokyo airport! Company card blocked. Need you to book $3,000 hotel and flight using your card. Will reimburse immediately. Very urgent!' How do you respond?",
+                    choices: [
+                        { text: "Book immediately - it's an emergency", correct: false },
+                        { text: "Call the CFO directly before taking action", correct: true },
+                        { text: "Contact travel department first", correct: false },
+                        { text: "Ask for more details via email", correct: false }
+                    ]
+                },
+                {
+                    title: "👔 Board Meeting Document!",
+                    text: "Urgent email from 'President.Mike@lamresearch-board.com': 'Board meeting in 1 hour! Need you to send all Q3 financial reports to this external consultant ASAP. Confidential - don't discuss with others!' What's your action?",
+                    choices: [
+                        { text: "Send documents immediately for the meeting", correct: false },
+                        { text: "Verify through official channels before sending", correct: true },
+                        { text: "Send only summary information", correct: false },
+                        { text: "Delay until after the meeting", correct: false }
+                    ]
+                },
+                {
+                    title: "👔 Acquisition Deal Urgency!",
+                    text: "Message from 'VP.Strategy@lam-corp-urgent.net': 'Confidential acquisition opportunity! Need you to prepare due diligence package immediately. Can't use normal channels - competitors watching. Use this secure email.' How do you handle this?",
+                    choices: [
+                        { text: "Prepare package using the secure email", correct: false },
+                        { text: "Verify the request through official VP channels", correct: true },
+                        { text: "Prepare basic information only", correct: false },
+                        { text: "Ask legal department for guidance", correct: false }
+                    ]
+                },
+                {
+                    title: "👔 Regulatory Compliance Rush!",
+                    text: "Email from 'Compliance.Director@lamresearch-legal.net': 'SEC audit surprise visit! Need all executive compensation data within 2 hours. Use attached secure form. Failure could result in penalties!' What do you do?",
+                    choices: [
+                        { text: "Complete the form immediately to avoid penalties", correct: false },
+                        { text: "Contact compliance department to verify", correct: true },
+                        { text: "Fill partial information and ask for extension", correct: false },
+                        { text: "Forward to legal team immediately", correct: false }
+                    ]
+                }
+            ],
+            
+            update: [
+                {
+                    title: "💻 Suspicious Software Update!",
+                    text: "A popup appeared saying 'Critical LAM Security Update Available! Click here to download and install now to protect your semiconductor data!' What should you do?",
+                    choices: [
+                        { text: "Click to download the important security update", correct: false },
+                        { text: "Close the popup and check with IT about official updates", correct: true },
+                        { text: "Download it but scan with antivirus first", correct: false },
+                        { text: "Share the popup with colleagues to see if it's real", correct: false }
+                    ]
+                },
+                {
+                    title: "💻 Adobe Flash Update Alert!",
+                    text: "While browsing a technical website, you get a popup: 'Adobe Flash Player is out of date! Download the latest version to view LAM semiconductor training videos.' What's your response?",
+                    choices: [
+                        { text: "Download the update to view training content", correct: false },
+                        { text: "Close popup and update through official Adobe site", correct: true },
+                        { text: "Ask IT if this specific update is approved", correct: false },
+                        { text: "Install but disable auto-run features", correct: false }
+                    ]
+                },
+                {
+                    title: "💻 Windows Security Update!",
+                    text: "You receive an email: 'Critical Windows Security Update Required! Your LAM computer is vulnerable. Click here to install emergency patch before system lockout in 2 hours!' How do you handle this?",
+                    choices: [
+                        { text: "Click the link to install the critical patch", correct: false },
+                        { text: "Contact IT helpdesk to verify the update", correct: true },
+                        { text: "Wait for automatic Windows update", correct: false },
+                        { text: "Install but backup data first", correct: false }
+                    ]
+                },
+                {
+                    title: "💻 Antivirus Renewal Notice!",
+                    text: "Pop-up message: 'Your LAM Enterprise Antivirus expires today! Download renewal package: LAM-Antivirus-2024.exe. Immediate installation required to maintain protection!' What should you do?",
+                    choices: [
+                        { text: "Download and install the renewal package", correct: false },
+                        { text: "Check with IT about official antivirus renewal", correct: true },
+                        { text: "Install but run in sandbox mode first", correct: false },
+                        { text: "Wait to see if system prompts automatic renewal", correct: false }
+                    ]
+                },
+                {
+                    title: "💻 Driver Update Notification!",
+                    text: "A notification appears: 'EUV Lithography Equipment Driver Update Available! Install now for optimal performance with LAM systems. Download: EUV-Driver-v2.1-LAM.exe' What's your action?",
+                    choices: [
+                        { text: "Install to ensure optimal equipment performance", correct: false },
+                        { text: "Verify with equipment specialists before installing", correct: true },
+                        { text: "Download but don't install until tested", correct: false },
+                        { text: "Check manufacturer's website for updates", correct: false }
+                    ]
+                }
+            ],
+            
+            phone: [
+                {
+                    title: "📱 Unattended Phone Security!",
+                    text: "A coworker left their phone unlocked on their desk and went to lunch. You can see their emails and messages. What's the right action?",
+                    choices: [
+                        { text: "Quickly check their messages to see if anything's important", correct: false },
+                        { text: "Lock the phone and let them know when they return", correct: true },
+                        { text: "Leave it alone - not my problem", correct: false },
+                        { text: "Take a funny photo as a prank", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Lost Company Phone!",
+                    text: "You find a LAM company phone in the parking lot. It's locked but you can see notification previews of confidential emails and messages. What should you do?",
+                    choices: [
+                        { text: "Try to unlock it to find the owner", correct: false },
+                        { text: "Take it directly to IT security", correct: true },
+                        { text: "Post about it on company Slack", correct: false },
+                        { text: "Wait at the location to see if owner returns", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Shoulder Surfing Risk!",
+                    text: "You're in an elevator with external visitors and notice a colleague next to you reading confidential LAM emails on their phone. The visitors can clearly see the screen. What do you do?",
+                    choices: [
+                        { text: "Ignore it - not your responsibility", correct: false },
+                        { text: "Subtly alert your colleague about the visibility", correct: true },
+                        { text: "Start a loud conversation to distract visitors", correct: false },
+                        { text: "Report the colleague after the elevator", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Personal Phone at Work!",
+                    text: "A colleague asks to borrow your personal phone to 'quickly check something work-related' because their LAM phone is dead. Your phone has personal photos and data. What's your response?",
+                    choices: [
+                        { text: "Let them use it - just for work purposes", correct: false },
+                        { text: "Politely decline and suggest alternative solutions", correct: true },
+                        { text: "Let them use it but watch them closely", correct: false },
+                        { text: "Clear personal data first, then let them use it", correct: false }
+                    ]
+                },
+                {
+                    title: "📱 Phone Screen Sharing!",
+                    text: "During a team meeting, a colleague wants to share their phone screen to show a LAM mobile app demo, but their phone also contains personal messages and photos. What's your advice?",
+                    choices: [
+                        { text: "Go ahead - just be careful what you show", correct: false },
+                        { text: "Use a dedicated demo device instead", correct: true },
+                        { text: "Clear notifications first, then share", correct: false },
+                        { text: "Share only specific apps", correct: false }
+                    ]
+                }
+            ],
+            
+            chip: [
+                {
+                    title: "🔬 Suspicious Chip Design Request!",
+                    text: "You got an email from 'supplier-asml@temp-server.net' asking: 'Please send latest 3nm chip layouts for equipment calibration. Urgent for tomorrow's production schedule.' What's wrong here?",
+                    choices: [
+                        { text: "Nothing wrong - suppliers need this info", correct: false },
+                        { text: "The email domain looks suspicious", correct: true },
+                        { text: "I should ask my manager first", correct: false },
+                        { text: "Send a small sample file to test if they're legitimate", correct: false }
+                    ]
+                },
+                {
+                    title: "🔬 Competitor Intelligence Request!",
+                    text: "Email from 'market.research@intel-analysis.com': 'Conducting industry benchmarking study. Can you provide LAM's 5nm process specifications for comparison? Confidential study, results shared with participants only.' How do you respond?",
+                    choices: [
+                        { text: "Share specifications to get industry insights", correct: false },
+                        { text: "Decline and report the suspicious request", correct: true },
+                        { text: "Send only public information", correct: false },
+                        { text: "Ask what other companies are participating", correct: false }
+                    ]
+                },
+                {
+                    title: "🔬 Academic Research Collaboration!",
+                    text: "A university professor emails: 'PhD student researching EUV lithography needs LAM's proprietary resist formulations for thesis. Will cite LAM appropriately. Can you share technical specifications?' What's your action?",
+                    choices: [
+                        { text: "Support academic research with technical data", correct: false },
+                        { text: "Refer them to official LAM research partnerships", correct: true },
+                        { text: "Share only published research data", correct: false },
+                        { text: "Ask for university approval documentation", correct: false }
+                    ]
+                },
+                {
+                    title: "🔬 Customer Technical Query!",
+                    text: "Email from 'procurement@samsung-fab.co.kr': 'Equipment installation next week. Need detailed LAM etch chamber specifications and proprietary gas flow algorithms for facility preparation.' How do you handle this?",
+                    choices: [
+                        { text: "Provide specifications to ensure proper installation", correct: false },
+                        { text: "Direct them through official customer support channels", correct: true },
+                        { text: "Send installation guides only", correct: false },
+                        { text: "Verify with sales team first", correct: false }
+                    ]
+                },
+                {
+                    title: "🔬 Patent Attorney Information!",
+                    text: "Request from 'legal@patent-law-intl.com': 'Representing LAM in patent dispute. Need all technical documentation related to plasma etch technology developments 2018-2024 for case preparation.' What should you do?",
+                    choices: [
+                        { text: "Send documentation to support LAM's legal case", correct: false },
+                        { text: "Verify through LAM's legal department first", correct: true },
+                        { text: "Send only non-confidential patents", correct: false },
+                        { text: "Ask for case number and court documentation", correct: false }
+                    ]
+                }
+            ],
+            
+            popup: [
+                {
+                    title: "⚠️ Fake Security Alert!",
+                    text: "A popup appeared saying 'CRITICAL VIRUS DETECTED! Your LAM computer is infected! Call 1-800-FIX-NOW immediately or lose all data!' What should you do?",
+                    choices: [
+                        { text: "Call the number right away to save my computer", correct: false },
+                        { text: "Close the popup and run my actual antivirus scan", correct: true },
+                        { text: "Click 'Fix Now' to remove the virus", correct: false },
+                        { text: "Give them remote access to fix the problem", correct: false }
+                    ]
+                },
+                {
+                    title: "⚠️ Microsoft Support Scam!",
+                    text: "Pop-up: 'Microsoft Security Alert! Your Windows license expired. LAM computer at risk! Call Microsoft Support: 1-888-MS-HELP to renew license and remove threats.' What's your response?",
+                    choices: [
+                        { text: "Call the number to renew Windows license", correct: false },
+                        { text: "Close popup and check Windows settings directly", correct: true },
+                        { text: "Click the popup to verify license status", correct: false },
+                        { text: "Ask IT if LAM's Windows licenses are current", correct: false }
+                    ]
+                },
+                {
+                    title: "⚠️ Browser Hijack Warning!",
+                    text: "Your browser suddenly redirects to: 'WARNING! LAM network compromised! Download security tool immediately: LAM-SecureFix.exe to prevent data theft!' What should you do?",
+                    choices: [
+                        { text: "Download the security tool to protect LAM data", correct: false },
+                        { text: "Close browser immediately and report to IT", correct: true },
+                        { text: "Scan the download with antivirus first", correct: false },
+                        { text: "Check if other colleagues see the same warning", correct: false }
+                    ]
+                },
+                {
+                    title: "⚠️ System Performance Alert!",
+                    text: "Pop-up appears: 'LAM computer performance degraded by 67%! Malware detected in semiconductor design files. Install CleanMyPC Pro to fix issues and protect IP!' How do you handle this?",
+                    choices: [
+                        { text: "Install the recommended cleanup software", correct: false },
+                        { text: "Close popup and run official LAM IT diagnostics", correct: true },
+                        { text: "Click to see what malware was detected", correct: false },
+                        { text: "Backup files before installing the cleaner", correct: false }
+                    ]
+                },
+                {
+                    title: "⚠️ Network Security Breach!",
+                    text: "Alert popup: 'URGENT: LAM network breach detected from your IP! Hackers accessing confidential data RIGHT NOW! Click here to secure connection: SecureMyConnection.exe' What's your action?",
+                    choices: [
+                        { text: "Click to secure the connection immediately", correct: false },
+                        { text: "Close popup and contact IT security team", correct: true },
+                        { text: "Disconnect from network and download the security tool", correct: false },
+                        { text: "Run network diagnostics first", correct: false }
+                    ]
+                }
+            ],
+            
+            wifi: [
+                {
+                    title: "📶 Free WiFi Network Risk!",
+                    text: "At a coffee shop, you see WiFi networks: 'Coffee_Shop_WiFi', 'FREE_INTERNET_HERE', and 'LAM_Guest_Network'. Which is safest to use for work?",
+                    choices: [
+                        { text: "FREE_INTERNET_HERE - it's completely free!", correct: false },
+                        { text: "None - use your mobile hotspot for work", correct: true },
+                        { text: "LAM_Guest_Network - it has LAM in the name", correct: false },
+                        { text: "Coffee_Shop_WiFi after asking staff to confirm", correct: false }
+                    ]
+                },
+                {
+                    title: "📶 Conference Center WiFi!",
+                    text: "At a semiconductor conference, WiFi options are: 'ConferenceGuest', 'SemiconductorPros', 'LAM-Research-VIP', and your mobile data. Which should you choose for accessing LAM emails?",
+                    choices: [
+                        { text: "LAM-Research-VIP since it seems official", correct: false },
+                        { text: "Use mobile data instead of public WiFi", correct: true },
+                        { text: "SemiconductorPros sounds industry-specific", correct: false },
+                        { text: "ConferenceGuest should be the official network", correct: false }
+                    ]
+                },
+                {
+                    title: "📶 Hotel Business Center!",
+                    text: "Hotel business center offers 'Complimentary Business WiFi - No password required' and 'Premium Secure WiFi - $10/day'. You need to review confidential LAM documents. What's your choice?",
+                    choices: [
+                        { text: "Use complimentary WiFi - it's for business", correct: false },
+                        { text: "Use mobile hotspot or wait until you're back at LAM", correct: true },
+                        { text: "Pay for premium secure WiFi", correct: false },
+                        { text: "Use complimentary WiFi with VPN", correct: false }
+                    ]
+                },
+                {
+                    title: "📶 Airport Lounge WiFi!",
+                    text: "In an airport business lounge, WiFi networks available: 'BusinessLounge_Free', 'Airport_Premium', and 'Executive_WiFi_Secure'. You need to join a confidential LAM video call. What's the best option?",
+                    choices: [
+                        { text: "Executive_WiFi_Secure sounds most secure", correct: false },
+                        { text: "Use mobile hotspot for confidential calls", correct: true },
+                        { text: "BusinessLounge_Free should be safe in a lounge", correct: false },
+                        { text: "Use any network but enable VPN", correct: false }
+                    ]
+                },
+                {
+                    title: "📶 Client Site WiFi!",
+                    text: "At a client's facility, they offer you access to their guest WiFi: 'ClientGuest_Secure' with password 'Welcome123'. You need to access LAM proprietary files for the meeting. How do you proceed?",
+                    choices: [
+                        { text: "Use client WiFi - it's secure and password-protected", correct: false },
+                        { text: "Use mobile data or request access to LAM VPN", correct: true },
+                        { text: "Ask client IT for a more secure connection", correct: false },
+                        { text: "Use client WiFi but only for non-confidential data", correct: false }
+                    ]
+                }
+            ]
+        };
+        
+        // User management
+        function startGame() {
+            const name = document.getElementById('playerName').value.trim();
+            const email = document.getElementById('playerEmail').value.trim();
+            
+            if (!name || !email) {
+                alert('Please enter both your name and email address.');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            gameState.playerName = name;
+            gameState.playerEmail = email;
+            gameState.startTime = new Date().toISOString();
+            gameState.gameActive = true;
+            
+            // Check if user has played before
+            checkExistingUser();
+            
+            // Hide login modal
+            document.getElementById('loginModal').style.display = 'none';
+            
+            // Update UI
+            document.getElementById('userInfo').textContent = `Player: ${name}`;
+            
+            // Start timer
+            startGameTimer();
+            
+            // Load leaderboard
+            loadLeaderboard();
+        }
+        
+        function checkExistingUser() {
+            const userData = localStorage.getItem(`lam_cyber_${gameState.playerEmail}`);
+            if (userData) {
+                const existingData = JSON.parse(userData);
+                alert(`Welcome back ${gameState.playerName}! Your previous score was ${existingData.score} points. You can play again, but your score will not be updated.`);
+                gameState.scoreSaved = true;
+            }
+        }
+        
+        function startGameTimer() {
+            gameTimer = setInterval(() => {
+                if (!gameState.gameActive) {
+                    clearInterval(gameTimer);
+                    return;
+                }
+                
+                gameState.timeRemaining--;
+                const minutes = Math.floor(gameState.timeRemaining / 60);
+                const seconds = gameState.timeRemaining % 60;
+                
+                document.getElementById('gameTimer').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (gameState.timeRemaining <= 0) {
+                    endGame('timeout');
+                }
+            }, 1000);
+        }
+        
+        function clickItem(itemId) {
+            if (!gameState.gameActive) return;
+            if (gameState.completedItems.includes(itemId)) return;
+            if (gameState.attemptedItems.includes(itemId)) return;
+            
+            gameState.currentItemId = itemId;
+            
+            // Get random question from this category
+            const questions = questionDatabase[itemId];
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            
+            showModal(randomQuestion, itemId);
+        }
+        
+        function showModal(question, itemId) {
+            const modal = document.getElementById('modalOverlay');
+            const title = document.getElementById('modalTitle');
+            const text = document.getElementById('modalText');
+            const buttons = document.getElementById('choiceButtons');
+            
+            title.textContent = question.title;
+            text.textContent = question.text;
+            
+            buttons.innerHTML = '';
+            question.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => handleChoice(choice, itemId, button);
+                buttons.appendChild(button);
+            });
+            
+            modal.style.display = 'flex';
+        }
+        
+        function handleChoice(choice, itemId, button) {
+            // Disable all buttons
+            const allButtons = document.querySelectorAll('.choice-btn');
+            allButtons.forEach(btn => btn.style.pointerEvents = 'none');
+            
+            // Mark as attempted
+            if (!gameState.attemptedItems.includes(itemId)) {
+                gameState.attemptedItems.push(itemId);
+            }
+            
+            if (choice.correct) {
+                button.classList.add('correct');
+                gameState.score += 25;
+                gameState.completedItems.push(itemId);
+                
+                setTimeout(() => {
+                    completeItem(itemId, true);
+                    closeModal();
+                }, 1500);
+            } else {
+                button.classList.add('incorrect');
+                
+                setTimeout(() => {
+                    completeItem(itemId, false);
+                    closeModal();
+                }, 1500);
+            }
+        }
+        
+        function completeItem(itemId, correct) {
+            const item = document.getElementById(`item-${itemId}`);
+            if (item) {
+                if (correct) {
+                    item.classList.add('completed');
+                } else {
+                    item.classList.add('attempted');
+                }
+            }
+            
+            updateProgress();
+            
+            // Check if game is complete
+            if (gameState.completedItems.length + (gameState.attemptedItems.length - gameState.completedItems.length) >= 15) {
+                setTimeout(() => {
+                    endGame('completed');
+                }, 1000);
+            }
+        }
+        
+        function updateProgress() {
+            document.getElementById('playerScore').textContent = gameState.score;
+            document.getElementById('progressCounter').textContent = 
+                `Completed: ${gameState.completedItems.length + (gameState.attemptedItems.length - gameState.completedItems.length)}/15 Threats`;
+        }
+        
+        function endGame(reason) {
+            gameState.gameActive = false;
+            clearInterval(gameTimer);
+            
+            const endTime = new Date().toISOString();
+            const timeTaken = Math.floor((new Date(endTime) - new Date(gameState.startTime)) / 1000);
+            
+            // Save score only if first time
+            if (!gameState.scoreSaved) {
+                saveUserScore(timeTaken);
+                gameState.scoreSaved = true;
+            }
+            
+            if (reason === 'timeout') {
+                document.getElementById('timeUpModal').style.display = 'flex';
+            } else {
+                showFinalResults();
+            }
+        }
+        
+        function saveUserScore(timeTaken) {
+            const userData = {
+                name: gameState.playerName,
+                email: gameState.playerEmail,
+                score: gameState.score,
+                timeTaken: timeTaken,
+                completedItems: gameState.completedItems.length,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Save individual user data
+            localStorage.setItem(`lam_cyber_${gameState.playerEmail}`, JSON.stringify(userData));
+            
+            // Save to leaderboard
+            let leaderboard = JSON.parse(localStorage.getItem('lam_cyber_leaderboard') || '[]');
+            leaderboard.push(userData);
+            
+            // Sort by score, then by time taken
+            leaderboard.sort((a, b) => {
+                if (b.score === a.score) {
+                    return a.timeTaken - b.timeTaken;
+                }
+                return b.score - a.score;
+            });
+            
+            // Keep top 50
+            leaderboard = leaderboard.slice(0, 50);
+            
+            localStorage.setItem('lam_cyber_leaderboard', JSON.stringify(leaderboard));
+            
+            loadLeaderboard();
+        }
+        
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('lam_cyber_leaderboard') || '[]');
+            const container = document.getElementById('leaderboard');
+            
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #bbb;">No players yet. Be the first!</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            leaderboard.slice(0, 10).forEach((player, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                
+                if (index < 3) {
+                    item.classList.add(`rank-${index + 1}`);
+                }
+                
+                const timeFormatted = `${Math.floor(player.timeTaken / 60)}:${(player.timeTaken % 60).toString().padStart(2, '0')}`;
+                
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold;">#${index + 1} ${player.name}</div>
+                        <div style="font-size: 0.8em; opacity: 0.8;">Time: ${timeFormatted}</div>
+                    </div>
+                    <div style="font-weight: bold; font-size: 1.2em;">${player.score}</div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+        
+        function showFinalResults() {
+            document.getElementById('timeUpModal').style.display = 'none';
+            
+            const timeTaken = Math.floor((new Date() - new Date(gameState.startTime)) / 1000);
+            const timeFormatted = `${Math.floor(timeTaken / 60)}:${(timeTaken % 60).toString().padStart(2, '0')}`;
+            
+            alert(`🎉 Congratulations ${gameState.playerName}!\n\nFinal Score: ${gameState.score} points\nTime Taken: ${timeFormatted}\nCorrect Answers: ${gameState.completedItems.length}/15\n\nCheck the leaderboard to see your ranking!`);
+            
+            loadLeaderboard();
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+        
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaderboard();
+        });
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                if (gameState.gameActive) {
+                    // Don't close during active game to prevent cheating
+                    return;
+                }
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
